@@ -1,0 +1,653 @@
+<!doctype html>
+<html lang="pt-BR">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1">
+<title>Geometria Espacial Passo a Passo</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Bricolage+Grotesque:opsz,wght@12..96,600;12..96,800&family=Source+Sans+3:ital,wght@0,400;0,600;0,700;1,400&family=STIX+Two+Text:ital,wght@0,500;1,500&display=swap" rel="stylesheet">
+<style>
+/* Concept: caderno quadriculado. Cada assunto é uma ficha com três botões: fórmula, exemplo, solução. */
+:root{
+  color-scheme:dark;
+  --bg:#000000; --grid:#111113; --card:#08080A; --ink:#F4F4F5; --muted:#A1A1AA; --line:#2C2C31;
+  --accent:#FFFFFF; --on-accent:#000000; --accent-soft:#17171B; --mark:#FFFFFF; --mark-soft:#0D0D10; --mark-line:#5A5A63;
+  --good:#4ADE80; --good-soft:#0F1A13;
+  /* cores da geometria */
+  --c-h:#22D3EE;  /* altura h */
+  --c-a:#FBBF24;  /* apótema da pirâmide a, geratriz g */
+  --c-p:#F472B6;  /* apótema da base a1, raio r */
+  --c-v:#A78BFA;  /* aresta l, lado a, raio maior R */
+  --c-g:#4ADE80;  /* ângulo reto (90°) */
+  --f-display:"Bricolage Grotesque","Segoe UI",system-ui,sans-serif;
+  --f-body:"Source Sans 3","Segoe UI",system-ui,sans-serif;
+  --f-math:"STIX Two Text","Cambria Math","Times New Roman",serif;
+}
+*{box-sizing:border-box}
+body{background:var(--bg);color:var(--ink);font-family:var(--f-body);font-size:17px;line-height:1.5;
+  background-image:linear-gradient(var(--grid) 1px,transparent 1px),linear-gradient(90deg,var(--grid) 1px,transparent 1px);
+  background-size:28px 28px;background-attachment:scroll}
+.wrap{max-width:960px;margin:0 auto;padding-inline:16px;padding-block:20px 64px}
+h1,h2,h3{font-family:var(--f-display);text-wrap:balance;margin:0;line-height:1.15}
+header.top{padding-block:28px 8px}
+.eyebrow{font-size:.78rem;letter-spacing:.12em;text-transform:uppercase;color:var(--muted);font-weight:700}
+h1{font-size:clamp(2rem,6vw,3.2rem);font-weight:800;margin-top:6px}
+.lede{max-width:60ch;color:var(--muted);margin:10px 0 0}
+.bar{position:sticky;top:env(safe-area-inset-top,0px);z-index:5;background:var(--bg);border-bottom:1px solid var(--line);
+  display:flex;flex-wrap:wrap;gap:10px;align-items:center;justify-content:space-between;padding-block:10px;margin-top:18px}
+.tabs{display:flex;gap:8px;flex-wrap:wrap}
+button{font:inherit;cursor:pointer}
+.tab{border:1.5px solid var(--line);background:var(--card);color:var(--ink);padding:8px 16px;border-radius:999px;font-weight:700}
+.tab[aria-selected="true"]{background:var(--accent);border-color:var(--accent);color:var(--on-accent)}
+.ghost{border:1.5px solid var(--line);background:transparent;color:var(--ink);padding:7px 14px;border-radius:8px;font-weight:600}
+.ghost:hover,.tab:hover{border-color:var(--accent)}
+:focus-visible{outline:3px solid var(--accent);outline-offset:2px}
+.tools{display:flex;gap:8px;flex-wrap:wrap}
+
+.calc{background:var(--card);border:1.5px solid var(--ink);border-radius:10px;padding:18px;margin-top:22px;box-shadow:5px 5px 0 var(--accent)}
+.calc h2{font-size:1.3rem}
+.calc p{margin:6px 0 14px;color:var(--muted)}
+.cgrid{display:grid;grid-template-columns:repeat(3,minmax(0,1fr));gap:12px}
+.cgrid label{display:flex;flex-direction:column;gap:4px;font-size:.85rem;font-weight:700;color:var(--muted);text-transform:uppercase;letter-spacing:.06em}
+.cgrid input,.cgrid select{font:inherit;font-size:1.05rem;padding:9px 10px;border:1.5px solid var(--line);border-radius:8px;background:var(--bg);color:var(--ink);min-width:0;width:100%}
+.res{display:grid;grid-template-columns:repeat(auto-fit,minmax(130px,1fr));gap:10px;margin-top:16px}
+.res div{border:1.5px solid var(--line);border-radius:8px;padding:9px 12px;background:var(--bg)}
+.res small{display:block;color:var(--muted);font-size:.78rem;text-transform:uppercase;letter-spacing:.06em;font-weight:700}
+.res b{font-family:var(--f-math);font-size:1.3rem;font-variant-numeric:tabular-nums;transition:color .3s}
+.res b.pulse{color:var(--accent)}
+.res small span{text-transform:none;letter-spacing:0;font-family:var(--f-math)}
+
+.list{display:grid;gap:18px;margin-top:22px}
+.card{background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:18px;scroll-margin-top:90px}
+.card[data-done="3"]{border-color:var(--good)}
+.chead{display:flex;gap:10px;align-items:baseline;flex-wrap:wrap}
+.tag{font-size:.72rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--accent);background:var(--accent-soft);padding:2px 8px;border-radius:5px}
+.card h3{font-size:1.28rem;font-weight:800}
+.steps{display:flex;gap:8px;flex-wrap:wrap;margin-top:14px;align-items:center}
+.sb{display:inline-flex;gap:8px;align-items:center;border:1.5px solid var(--accent);background:var(--card);color:var(--accent);padding:8px 14px;border-radius:8px;font-weight:700;transition:transform .15s,background .2s}
+.sb:hover:not(:disabled){transform:translateY(-2px)}
+.sb i{font-style:normal;width:22px;height:22px;border-radius:50%;display:grid;place-items:center;font-size:.8rem;background:var(--accent-soft)}
+.sb.on{background:var(--accent);color:var(--on-accent)}
+.sb.on i{background:transparent;border:1.5px solid currentColor}
+.sb:disabled{border-color:var(--line);color:var(--muted);cursor:not-allowed;opacity:.7}
+.reset{margin-left:auto;background:none;border:0;color:var(--muted);text-decoration:underline;padding:6px}
+.rv{display:grid;grid-template-rows:0fr;transition:grid-template-rows .55s cubic-bezier(.2,.8,.2,1)}
+.rv>.in{overflow:hidden;min-height:0}
+.rv.open{grid-template-rows:1fr}
+.pad{padding-top:16px}
+.pn{border-top:1.5px dashed var(--line);margin-top:16px}
+.pn-label{font-size:.78rem;font-weight:700;letter-spacing:.1em;text-transform:uppercase;color:var(--muted);margin:0 0 8px}
+.cols{display:grid;grid-template-columns:minmax(0,1fr) minmax(0,260px);gap:16px;align-items:start}
+.fig{width:100%;height:auto;max-height:240px}
+.fig .s{stroke:var(--ink);stroke-width:2;fill:none;stroke-linecap:round;stroke-linejoin:round}
+.fig .d{stroke:var(--muted);stroke-width:1.6;fill:none;stroke-dasharray:5 4}
+.fig .h{stroke:var(--accent);stroke-width:3.2;fill:none;stroke-linecap:round}
+.fig .m{stroke:var(--mark);stroke-width:2.6;fill:none;stroke-linecap:round}
+.fig .pl{fill:var(--accent-soft);stroke:var(--accent);stroke-width:1.6;opacity:.75}
+.fig text{fill:var(--ink);font-family:var(--f-math);font-style:italic;font-size:15px}
+.fig text.c{fill:var(--muted);font-style:normal;font-family:var(--f-body);font-size:12px}
+.fig .draw{stroke-dasharray:1;stroke-dashoffset:1}
+.go .draw{animation:dr 1.1s ease forwards}
+.fig .fade{opacity:0}
+.go .fade{animation:fd .8s .5s ease forwards}
+@keyframes dr{to{stroke-dashoffset:0}}
+@keyframes fd{to{opacity:1}}
+.eq-row{margin:6px 0}
+.eq-t{display:block;font-size:.85rem;color:var(--muted);font-weight:600}
+.eq{font-family:var(--f-math);font-size:1.4rem;background:var(--accent-soft);border-radius:8px;padding:8px 14px;display:inline-block;max-width:100%;overflow-x:auto}
+.m{font-family:var(--f-math);font-size:1.08em;white-space:normal}
+.m i,.eq i{font-style:italic}
+.fr{display:inline-flex;flex-direction:column;vertical-align:middle;text-align:center;margin:0 .14em;line-height:1.15}
+.fr .n{border-bottom:1.5px solid currentColor;padding:0 .3em .06em}
+.fr .d{padding:.06em .3em 0}
+.rt{white-space:nowrap}.rr{border-top:1.5px solid currentColor;padding:0 .08em;margin-left:1px}
+sub,sup{line-height:0;font-size:.7em}
+.notes{margin:10px 0 0;padding-left:1.1em;color:var(--muted)}
+.notes li{margin:2px 0}
+.lead{margin:0 0 4px}
+.ex{background:var(--card);border-left:4px solid var(--accent);padding:4px 0 4px 14px;margin:0}
+.extra{display:inline-block;font-size:.72rem;font-weight:700;text-transform:uppercase;letter-spacing:.08em;background:var(--mark-soft);color:var(--mark);padding:1px 7px;border-radius:4px;margin-bottom:6px}
+ol.sol{list-style:none;counter-reset:s;margin:0;padding:0;display:grid;gap:8px}
+ol.sol li{counter-increment:s;display:grid;grid-template-columns:30px minmax(0,1fr);gap:10px;opacity:0;transform:translateY(8px)}
+ol.sol li::before{content:counter(s);width:26px;height:26px;border-radius:50%;background:var(--accent);color:var(--on-accent);display:grid;place-items:center;font-weight:700;font-size:.85rem;margin-top:1px}
+.open ol.sol li{animation:rise .5s ease forwards;animation-delay:calc(var(--i)*.55s + .25s)}
+.ans{margin-top:12px;background:var(--mark-soft);border:1.5px solid var(--mark-line);border-radius:8px;padding:10px 14px;font-size:1.05rem;opacity:0}
+.ans b.k{font-family:var(--f-display);font-size:.75rem;letter-spacing:.1em;text-transform:uppercase;color:var(--mark);display:block}
+.open .ans{animation:rise .6s ease forwards;animation-delay:calc(var(--n)*.55s + .45s)}
+.doubt{margin-top:12px;font-size:.95rem;color:var(--muted);border-top:1px dashed var(--line);padding-top:10px}
+.doubt b{color:var(--ink)}
+@keyframes rise{to{opacity:1;transform:none}}
+.tw{overflow-x:auto}table{border-collapse:collapse;width:100%;min-width:520px}th,td{text-align:left;padding:8px 10px;border-bottom:1px solid var(--line);vertical-align:middle}th{font-size:.78rem;text-transform:uppercase;letter-spacing:.08em;color:var(--muted)}td.m2{font-family:var(--f-math);font-size:1.1rem}.lk{background:none;border:0;color:var(--accent);font-weight:700;text-decoration:underline;padding:0;text-align:left}
+.faq{margin-top:40px}
+.faq h2{font-size:1.5rem;margin-bottom:12px}
+details{background:var(--card);border:1.5px solid var(--line);border-radius:10px;padding:12px 16px;margin-bottom:10px}
+summary{cursor:pointer;font-weight:700}
+details p{margin:8px 0 0;color:var(--muted)}
+.foot{margin-top:28px;color:var(--muted);font-size:.9rem}
+@media (max-width:640px){
+  .cols{grid-template-columns:minmax(0,1fr)}
+  .cgrid{grid-template-columns:minmax(0,1fr)}
+  .reset{margin-left:0}
+}
+@media (prefers-reduced-motion:reduce){
+  *{animation-duration:.01s!important;animation-delay:0s!important;transition-duration:.01s!important}
+}
+
+/* ---- fundo preto: cores só na geometria ---- */
+.fig .h{stroke:var(--c-h);stroke-width:3.2}
+.fig .m{stroke:var(--c-a);stroke-width:3}
+.fig .p{stroke:var(--c-p);stroke-width:3;fill:none;stroke-linecap:round}
+.fig .v{stroke:var(--c-v);stroke-width:3;fill:none;stroke-linecap:round}
+.fig .g{stroke:var(--c-g);stroke-width:2.6;fill:none;stroke-linecap:square}
+.fig .pl{fill:rgba(34,211,238,.13);stroke:var(--c-h);opacity:1}
+.fig text.th{fill:var(--c-h)}.fig text.ta{fill:var(--c-a)}.fig text.tp{fill:var(--c-p)}.fig text.tv{fill:var(--c-v)}
+.go .g{animation:dr 1.1s ease forwards, glow 1.6s 1.2s ease-in-out 2}
+@keyframes glow{50%{filter:drop-shadow(0 0 5px var(--c-g))}}
+.legend{display:flex;flex-wrap:wrap;gap:8px 16px;margin:16px 0 0;padding:0;list-style:none;font-size:.9rem;color:var(--muted)}
+.legend li{display:flex;align-items:center;gap:7px}
+.legend i{width:22px;height:4px;border-radius:2px;display:inline-block}
+.legend i.sq{width:11px;height:11px;border-radius:0;background:none;border:2.5px solid var(--c-g);border-right-color:transparent;border-bottom-color:transparent}
+.card[data-done="3"]{border-color:var(--c-g)}
+.calc{box-shadow:5px 5px 0 var(--c-h)}
+.fig text{font-size:17px}.fig text.c{font-size:12px}
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header class="top">
+    <div class="eyebrow">Matemática · Professora Jesonita · 2ª série</div>
+    <h1>Geometria espacial passo a passo</h1>
+    <p class="lede">Pirâmides e geometria de posição. Em cada ficha, clique em <b>Ver fórmula</b>, depois em <b>Ver exemplo</b> e por fim em <b>Ver solução</b> para acompanhar a resolução, um passo de cada vez.</p>
+  <ul class="legend" aria-label="Legenda de cores dos desenhos">
+      <li><i style="background:var(--c-h)"></i>altura h</li>
+      <li><i style="background:var(--c-a)"></i>apótema da pirâmide a · geratriz g</li>
+      <li><i style="background:var(--c-p)"></i>apótema da base a₁ · raio r</li>
+      <li><i style="background:var(--c-v)"></i>aresta l · lado a · raio maior R</li>
+      <li><i class="sq"></i>ângulo reto (90°)</li>
+    </ul>
+  </header>
+
+  <div class="bar">
+    <div class="tabs" role="tablist" aria-label="Assunto">
+      <button class="tab" role="tab" id="tab-p" aria-selected="true" data-g="p">Pirâmides</button>
+      <button class="tab" role="tab" id="tab-g" aria-selected="false" data-g="g">Geometria de posição</button>
+      <button class="tab" role="tab" id="tab-s" aria-selected="false" data-g="s">Todos os sólidos</button>
+    </div>
+    <div class="tools">
+      <button class="ghost" id="openAll">Abrir tudo</button>
+      <button class="ghost" id="closeAll">Fechar tudo</button>
+    </div>
+  </div>
+
+  <section class="calc" id="calc" aria-labelledby="ct">
+    <h2 id="ct">Calculadora de pirâmide regular</h2>
+    <p>Escolha a base e digite os valores. Os resultados usam as fórmulas das fichas abaixo.</p>
+    <div class="cgrid">
+      <label>Base<select id="cb"><option value="3">Triângulo equilátero</option><option value="4" selected>Quadrado</option><option value="6">Hexágono regular</option></select></label>
+      <label>Aresta da base l (cm)<input id="cl" type="number" min="0.1" step="0.1" value="6"></label>
+      <label>Altura h (cm)<input id="ch" type="number" min="0.1" step="0.1" value="4"></label>
+    </div>
+    <div class="res" id="res" aria-live="polite"></div>
+  </section>
+
+  <section class="calc" id="tbl" hidden aria-labelledby="tt"><h2 id="tt">Fórmulas de todos os sólidos</h2><p>Toque no nome para abrir a ficha com exemplo e solução. Volume e área total; as letras estão explicadas em cada ficha.</p><div class="tw"><table><thead><tr><th>Sólido</th><th>Volume</th><th>Área total</th></tr></thead><tbody id="tb"></tbody></table></div></section>
+  <main class="list" id="list"></main>
+
+  <section class="faq" id="faq">
+    <h2>Dúvidas que mais aparecem</h2>
+  </section>
+  <p class="foot">Material montado a partir dos slides e das páginas do livro enviados (pirâmides; Geometria Espacial de Posição, capítulo 7). Itens marcados como “extra” foram acrescentados para treinar e não estão nos slides.</p>
+</div>
+
+<script>
+/* ---------- mini notação matemática ---------- */
+function M(s){
+  s=s.replace(/[A-Za-zÀ-ÿℓΔα-ω]+/g,m=>m.length===1?'<i>'+m+'</i>':m);
+  for(let k=0;k<6;k++) s=s.replace(/√\(([^()]*)\)/g,(_,x)=>'<span class="rt">√<span class="rr">'+x+'</span></span>');
+  s=s.replace(/√(\d+|<i>[^<]*<\/i>)/g,(_,x)=>'<span class="rt">√<span class="rr">'+x+'</span></span>');
+  for(let k=0;k<6;k++) s=s.replace(/\[([^\[\]|]*)\|([^\[\]|]*)\]/g,(_,n,d)=>'<span class="fr"><span class="n">'+n+'</span><span class="d">'+d+'</span></span>');
+  const un=x=>x.replace(/^\((.*)\)$/,'$1');
+  s=s.replace(/_(<i>[^<]*<\/i>|\d+|[A-Za-zÀ-ÿℓΔ]+|\([^()]*\))/g,(_,x)=>'<sub>'+un(x)+'</sub>');
+  s=s.replace(/\^(<i>[^<]*<\/i>|\d+|[A-Za-z]+|\([^()]*\))/g,(_,x)=>'<sup>'+un(x)+'</sup>');
+  return s;
+}
+function P(s){return s.replace(/\*\*([^*]+)\*\*/g,'<b>$1</b>').replace(/\$([^$]+)\$/g,(_,m)=>'<span class="m">'+M(m)+'</span>');}
+
+/* ---------- figuras ---------- */
+const T_=(x,y,t,c)=>'<text x="'+x+'" y="'+y+'"'+(c?' class="'+(c===1?'c':c)+'"':'')+'>'+t+'</text>';
+function pyr(){return '<svg class="fig" viewBox="0 0 300 230" role="img" aria-label="Pirâmide regular com altura h, apótema da pirâmide a e apótema da base a1">'+
+ '<path class="s draw" pathLength="1" d="M50 195 L170 195 L250 155 L130 155 Z" style="stroke-dasharray:1"/>'+
+ '<path class="d fade" d="M130 155 L50 195 M130 155 L250 155"/>'+
+ '<path class="s draw" pathLength="1" d="M150 30 L50 195 M150 30 L170 195 M150 30 L250 155"/>'+
+ '<path class="d fade" d="M150 30 L130 155"/>'+
+ '<path class="h draw" pathLength="1" d="M150 30 L150 175"/>'+
+ '<path class="p draw" pathLength="1" d="M150 175 L210 175"/>'+'<path class="g draw" pathLength="1" d="M150 165 H160 V175"/>'+
+ '<path class="m draw" pathLength="1" d="M150 30 L210 175"/>'+
+ T_(144,22,'V')+T_(136,178,'O')+T_(212,190,'M')+T_(152,110,'h','th')+T_(176,104,'a','ta')+T_(172,172,'a₁','tp')+T_(104,212,'l',0)+
+ '</svg>';}
+function tronco(){return '<svg class="fig" viewBox="0 0 300 230" role="img" aria-label="Tronco de pirâmide com base maior, base menor e altura">'+
+ '<path class="d fade" d="M150 20 L106 92 M150 20 L166 92 M150 20 L194 76 M150 20 L134 76"/>'+
+ '<path class="s draw" pathLength="1" d="M40 200 L190 200 L260 160 L110 160 Z"/>'+
+ '<path class="s draw" pathLength="1" d="M106 92 L166 92 L194 76 L134 76 Z"/>'+
+ '<path class="s draw" pathLength="1" d="M40 200 L106 92 M190 200 L166 92 M260 160 L194 76"/>'+
+ '<path class="d fade" d="M110 160 L134 76"/>'+
+ '<path class="h draw" pathLength="1" d="M24 92 L24 200"/>'+
+ T_(8,150,'h₁','th')+T_(112,64,'base menor',1)+T_(120,222,'base maior',1)+T_(150,14,'V')+T_(270,120,'faces: trapézios',1)+
+ '</svg>';}
+const V={A:[30,190],B:[140,190],F:[140,100],E:[30,100],D:[90,145],C:[200,145],G:[200,55],H:[90,55]};
+const LBL={A:[-14,12],B:[2,16],F:[4,-2],E:[-14,-2],D:[-16,6],C:[6,10],G:[6,0],H:[-14,-4]};
+function cube(o){o=o||{};
+  const E_=['AB','BC','CD','DA','EF','FG','GH','HE','AE','BF','CG','DH'],hid=['DA','CD','DH'];
+  let s='<svg class="fig" viewBox="0 0 250 220" role="img" aria-label="Cubo ABCDEFGH">';
+  (o.faces||[]).forEach(f=>{s+='<polygon class="pl" points="'+f.split('').map(k=>V[k].join(',')).join(' ')+'"/>';});
+  E_.forEach(e=>{const a=V[e[0]],b=V[e[1]];s+='<path class="'+(hid.includes(e)?'d':'s')+'" d="M'+a.join(' ')+' L'+b.join(' ')+'"/>';});
+  (o.lines||[]).forEach((e,i)=>{const a=V[e[0]],b=V[e[1]];s+='<path class="'+(i%2?'m':'h')+' draw" pathLength="1" d="M'+a.join(' ')+' L'+b.join(' ')+'"/>';});
+  Object.keys(V).forEach(k=>{s+=T_(V[k][0]+LBL[k][0],V[k][1]+LBL[k][1],k);});
+  return s+'</svg>';}
+function linePlane(){
+  const pl=x=>'<polygon class="pl" points="'+[[x+6,72],[x+30,42],[x+100,42],[x+76,72]].map(p=>p.join(',')).join(' ')+'"/>';
+  return '<svg class="fig" viewBox="0 0 340 120" role="img" aria-label="Reta paralela, contida e secante a um plano">'+
+  pl(4)+'<path class="h draw" pathLength="1" d="M18 22 L92 22"/>'+T_(48,16,'r')+T_(8,64,'α')+T_(24,100,'paralela',1)+
+  pl(118)+'<path class="h draw" pathLength="1" d="M140 57 L200 57"/>'+T_(166,50,'s')+T_(122,64,'β')+T_(138,100,'contida',1)+
+  pl(232)+'<path class="h draw" pathLength="1" d="M276 10 L292 76"/><path class="d fade" d="M292 76 L298 98"/><circle cx="283" cy="57" r="3.5" fill="currentColor"/>'+T_(294,14,'t')+T_(288,52,'P')+T_(236,64,'γ')+T_(252,112,'secante',1)+
+  '</svg>';}
+function twoPlanes(){
+  return '<svg class="fig" viewBox="0 0 340 130" role="img" aria-label="Planos paralelos e planos secantes">'+
+  '<polygon class="pl" points="14,48 44,22 124,22 94,48"/><polygon class="pl" points="14,92 44,66 124,66 94,92"/>'+T_(18,44,'α')+T_(18,88,'β')+T_(34,120,'paralelos',1)+
+  '<polygon class="pl" points="175,100 205,70 310,70 280,100"/><polygon class="pl" points="230,10 290,10 270,115 210,115"/>'+
+  '<path class="h draw" pathLength="1" d="M216 85 L276 85"/>'+T_(282,84,'i')+T_(180,96,'α')+T_(214,26,'β')+T_(214,128,'secantes',1)+
+  '</svg>';}
+
+/* ---------- conteúdo ---------- */
+const TOP=[
+{id:'p1',g:'p',title:'Elementos da pirâmide e Pitágoras',fig:pyr,
+ formula:{lead:'Numa pirâmide regular, a base é um polígono regular e o pé da altura é o centro $O$ da base. Dois triângulos retângulos resolvem quase tudo.',
+  eq:['a^2 = h^2 + a_1^2','a_ℓ^2 = a^2 + ([l|2])^2'],
+  notes:['$h$ = altura (do vértice $V$ ao centro $O$)','$a_1$ = apótema da base (de $O$ ao ponto médio $M$ de um lado)','$a$ = apótema da pirâmide (altura de uma face lateral, $VM$)','$a_ℓ$ = aresta lateral e $l$ = aresta da base']},
+ ex:'Pirâmide regular de base quadrada com aresta da base $l = 6$ cm e altura $h = 4$ cm. Calcule o apótema da pirâmide $a$ e a aresta lateral $a_ℓ$.',
+ sol:['Apótema da base: no quadrado é metade do lado, então $a_1 = l/2 = 3$ cm.','Triângulo da altura: $a^2 = h^2 + a_1^2 = 16 + 9 = 25$, logo $a = 5$ cm.','Aresta lateral: $a_ℓ^2 = a^2 + ([l|2])^2 = 25 + 9 = 34$, logo $a_ℓ = √34 ≈ 5,83$ cm.'],
+ ans:'$a = 5$ cm e $a_ℓ = √34 ≈ 5,83$ cm',
+ doubt:'**Qual a diferença entre $a$ e $a_1$?** O $a_1$ fica dentro da base. O $a$ sobe pela face lateral. Por isso $a$ é a hipotenusa: $a^2 = h^2 + a_1^2$.'},
+{id:'p2',g:'p',title:'Área da base (polígonos regulares)',fig:pyr,
+ formula:{lead:'A área da base $A_B$ depende do polígono. Um polígono regular se divide em triângulos iguais.',
+  eq:[{t:'Triângulo equilátero',e:'A_B = [l^2·√3|4]'},{t:'Altura do triângulo equilátero',e:'h_Δ = [l·√3|2]'},{t:'Quadrado',e:'A_B = l^2'},{t:'Hexágono regular (6 triângulos equiláteros)',e:'A_B = 6·[l^2·√3|4] = [3·l^2·√3|2]'}],
+  notes:['No hexágono regular o apótema da base é $a_1 = [l·√3|2]$ (altura de um dos triângulos).']},
+ ex:'A base de uma pirâmide regular é um hexágono regular de aresta $l = 4√3$ cm. Calcule a área da base.',
+ sol:['O hexágono regular é formado por 6 triângulos equiláteros de lado $l$.','Calcule $l^2 = (4√3)^2 = 16·3 = 48$.','$A_B = 6·[48·√3|4] = 6·12√3 = 72√3$ cm².'],
+ ans:'$A_B = 72√3$ cm² ≈ 124,71 cm²',
+ doubt:'**Por que $a_1 = [l·√3|2]$ só vale no hexágono?** No hexágono, o apótema é exatamente a altura de um dos triângulos equiláteros. No triângulo equilátero da base, o apótema é $[l·√3|6]$ e, no quadrado, $[l|2]$.'},
+{id:'p3',g:'p',title:'Área lateral e área total',fig:pyr,
+ formula:{lead:'A superfície lateral é feita de $n$ triângulos iguais, de base $l$ e altura $a$ (o apótema da pirâmide).',
+  eq:['A_L = n·[l·a|2]','A_t = A_B + A_L'],
+  notes:['$n$ = número de lados da base','Passos: $a_1$, depois $a$ (Pitágoras), depois $A_L$ e $A_B$.']},
+ ex:'Pirâmide regular hexagonal de altura 8 cm e aresta da base $4√3$ cm. Calcule a área total.',
+ sol:['Base: $A_B = 6·[(4√3)^2·√3|4] = 72√3$ cm².','Apótema da base: $a_1 = [l·√3|2] = [4√3·√3|2] = 6$ cm.','Apótema da pirâmide: $a^2 = 8^2 + 6^2 = 100$, logo $a = 10$ cm.','Lateral: $A_L = 6·[4√3·10|2] = 120√3$ cm².','Total: $A_t = 72√3 + 120√3 = 192√3$ cm².'],
+ ans:'$A_t = 192√3$ cm² ≈ 332,55 cm²',
+ doubt:'**Posso usar $A_L = n·[b·h_Δ|2]$?** Pode, é a mesma conta: $b$ é a base do triângulo da face ($l$) e $h_Δ$ é a altura dele ($a$).'},
+{id:'p4',g:'p',title:'Volume da pirâmide',fig:pyr,
+ formula:{lead:'O volume é um terço da área da base vezes a altura.',
+  eq:['V = [A_B·h|3]'],
+  notes:['Princípio de Cavalieri: pirâmides com bases de mesma área e mesma altura têm o mesmo volume.','Um cubo se divide em 3 pirâmides congruentes. Cada uma tem 1/3 do volume do prisma de mesma base e altura.']},
+ ex:'Calcule o volume de uma pirâmide quadrada cuja aresta da base mede 4 cm e a altura, 7 cm.',
+ sol:['Área da base: $A_B = 4^2 = 16$ cm².','Aplique a fórmula: $V = [16·7|3] = [112|3]$.','Divida: $[112|3] ≈ 37,3$.'],
+ ans:'$V = [112|3] ≈ 37,3$ cm³',
+ doubt:'**A altura é a aresta lateral?** Não. A altura $h$ é perpendicular à base. A aresta lateral é inclinada e sempre maior que $h$.'},
+{id:'p5',g:'p',title:'Tetraedro regular',fig:pyr,
+ formula:{lead:'Tetraedro é toda pirâmide de base triangular. No regular, as 4 faces são triângulos equiláteros iguais, de aresta $a$.',
+  eq:['A_t = a^2·√3','h = [a·√6|3]','V = [a^3·√2|12]'],
+  notes:['A área total vem de $4·[a^2·√3|4]$.']},
+ ex:'Tetraedro regular de aresta 6 cm. Calcule a área total, a altura e o volume.',
+ sol:['Área total: $A_t = 6^2·√3 = 36√3 ≈ 62,35$ cm².','Altura: $h = [6·√6|3] = 2√6 ≈ 4,90$ cm.','Volume: $V = [6^3·√2|12] = [216√2|12] = 18√2 ≈ 25,46$ cm³.','Conferindo por $V = [A_B·h|3]$: $A_B = 9√3$, então $V = [9√3·2√6|3] = [54√2|3] = 18√2$.'],
+ ans:'$A_t = 36√3$ cm², $h = 2√6$ cm e $V = 18√2 ≈ 25,46$ cm³'},
+{id:'p6',g:'p',title:'Octaedro regular',fig:pyr,
+ formula:{lead:'Duas pirâmides regulares de base quadrada, com faces laterais equiláteras, coladas pela base formam o octaedro regular de aresta $a$.',
+  eq:['h_p = [a·√2|2]','V = 2·[a^2·h|3] = [a^3·√2|3]','A_t = 2·a^2·√3'],
+  notes:['As 8 faces são triângulos equiláteros: $8·[a^2·√3|4] = 2a^2√3$.']},
+ ex:'Calcule o volume do octaedro regular de aresta 5 cm.',
+ sol:['Diagonal da base: $AC = 5√2$, então $OC = [5√2|2]$.','Altura: $5^2 = h^2 + ([5√2|2])^2$, logo $h^2 = 25 − [50|4] = [50|4]$ e $h = [5√2|2]$.','Uma pirâmide: $V = [25·(5√2/2)|3] = [125√2|6]$.','O octaedro tem duas: $V = 2·[125√2|6] = [125√2|3]$.','Com $√2 ≈ 1,414$: $V ≈ 58,9$ cm³.'],
+ ans:'$V = [125√2|3] ≈ 58,9$ cm³',
+ doubt:'**O slide mostra 58,2.** O slide usa $√2 ≈ 1,4$, que dá 58,2. Com $√2 ≈ 1,414$ o resultado é 58,9. Pergunte à professora qual aproximação usar na prova.'},
+{id:'p7',g:'p',title:'Seção transversal e razão de semelhança',fig:tronco,
+ formula:{lead:'Um plano paralelo à base corta a pirâmide em duas partes e cria uma pirâmide menor, semelhante à original. Com $H$ (maior) e $h$ (menor), a razão de semelhança é $K$.',
+  eq:['K = [H|h] = [L|l]','[A_B|A_b] = K^2','[A_L|a_l] = K^2','[V|v] = K^3'],
+  notes:['Segmentos: razão $K$. Áreas (bases, laterais, totais): $K^2$. Volumes: $K^3$.']},
+ ex:'A base de uma pirâmide tem 36 cm². Uma seção transversal feita a 3 cm da base tem 9 cm². Calcule a altura da pirâmide.',
+ sol:['A pirâmide menor tem altura $h = H − 3$.','Razão entre áreas: $[A_B|A_b] = ([H|h])^2$, então $[36|9] = ([H|H−3])^2$.','Tire a raiz dos dois lados: $2 = [H|H−3]$.','Resolva: $2H − 6 = H$, logo $H = 6$.'],
+ ans:'$H = 6$ cm',
+ doubt:'**Por que tirei a raiz?** Porque as áreas se relacionam por $K^2$. A raiz da razão de áreas é a razão entre alturas.'},
+{id:'p8',g:'p',title:'Tronco de pirâmide: elementos e área total',fig:tronco,
+ formula:{lead:'O tronco é o que sobra da pirâmide depois de retirar a parte de cima. Tem duas bases semelhantes (maior $A_B$ e menor $A_b$), altura $h_1$ e faces laterais em forma de trapézio.',
+  eq:['A_t = A_B + A_b + A_L','A_L = n·[(L + l)·a_t|2]'],
+  notes:['A segunda fórmula vale para tronco regular: $L$ e $l$ são as arestas das bases e $a_t$ é a altura de cada trapézio.','Altura do tronco: $h_1$ é a distância entre os planos das duas bases.']},
+ ex:'<span class="extra">extra</span><br>Tronco de pirâmide regular de bases quadradas, com lados 12 cm e 4 cm e apótema do tronco $a_t = 5$ cm. Calcule a área total e o volume.',
+ sol:['Bases: $A_B = 12^2 = 144$ e $A_b = 4^2 = 16$.','Lateral (4 trapézios): $A_L = 4·[(12 + 4)·5|2] = 160$.','Área total: $A_t = 144 + 16 + 160 = 320$ cm².','Altura do tronco: $h_1^2 = 5^2 − ([12 − 4|2])^2 = 25 − 16 = 9$, logo $h_1 = 3$ cm.','Volume: $V = [3|3]·(144 + √(144·16) + 16) = 144 + 48 + 16 = 208$ cm³.'],
+ ans:'$A_t = 320$ cm² e $V = 208$ cm³'},
+{id:'p9',g:'p',title:'Volume do tronco de pirâmide',fig:tronco,
+ formula:{lead:'Use a fórmula direta com a altura do tronco $h_1$ e as áreas das duas bases.',
+  eq:['V = [h_1|3]·(A_B + √(A_B·A_b) + A_b)'],
+  notes:['Outro caminho: volume da pirâmide maior menos o da menor.']},
+ ex:'Um tronco de pirâmide tem como bases dois quadrados de lados 5 cm e 12 cm. A altura do tronco é 8 cm. Calcule o volume.',
+ sol:['Áreas: $A_B = 144$ e $A_b = 25$.','Raiz do meio: $√(144·25) = √3600 = 60$.','Aplique: $V = [8|3]·(144 + 60 + 25) = [8|3]·229 = [1832|3] ≈ 610,67$.','Outra forma: $K = [5|12]$, então $[H − 8|H] = [5|12]$ e $H = [96|7]$. Maior: $[144·(96/7)|3] ≈ 658,29$. Menor: $[25·(40/7)|3] ≈ 47,62$. Diferença: $≈ 610,67$.'],
+ ans:'$V = [1832|3] ≈ 610,7$ cm³ (o slide mostra 610,6, valor truncado)'},
+{id:'p10',g:'p',title:'Tronco por semelhança (as duas pirâmides)',fig:tronco,
+ formula:{lead:'Quando o corte é dado por medidas das duas pirâmides, calcule cada uma e subtraia.',
+  eq:['[H|h] = [L|l]','V_tronco = V − v'],
+  notes:['$V$ e $v$ vêm de $[A·altura|3]$ em cada pirâmide.']},
+ ex:'Pirâmide de base quadrada de lado 9 cm e altura 12 cm, cortada por um plano paralelo à base a 4 cm do vértice. Calcule as áreas das bases e os volumes das duas pirâmides.',
+ sol:['Base maior: $A_B = 9^2 = 81$ cm².','Semelhança: $[12|4] = [9|l]$, então $3 = [9|l]$ e $l = 3$ cm. Base menor: $A_b = 9$ cm².','Menor: $v = [9·4|3] = 12$ cm³. Maior: $V = [81·12|3] = 324$ cm³.','O tronco tem $324 − 12 = 312$ cm³. Conferindo: $[8|3]·(81 + 27 + 9) = 312$.'],
+ ans:'$A_B = 81$, $A_b = 9$, $v = 12$ cm³ e $V = 324$ cm³ (tronco: 312 cm³)'},
+
+/* ---- posição ---- */
+{id:'g1',g:'g',title:'Noções primitivas e postulados',fig:()=>cube({lines:[['A','B']]}),
+ formula:{lead:'Ponto, reta e plano não se definem. As propriedades abaixo são aceitas sem demonstração (postulados).',
+  eq:[{t:'Determinação da reta',e:'2 pontos distintos → 1 única reta'},{t:'Determinação do plano',e:'3 pontos não colineares → 1 único plano'},{t:'Inclusão',e:'2 pontos da reta em α ⇒ reta ⊂ α'},{t:'Euclides',e:'~por P ∉ r passa 1 única paralela a r'}],
+  notes:['Ponto: letra maiúscula ($A$). Reta: minúscula ($r$). Plano: letra grega ($α$).','Pontos colineares estão numa mesma reta. Pontos coplanares estão num mesmo plano.']},
+ ex:'Por que uma mesa de 4 pernas pode balançar e uma mesa de 3 pernas não?',
+ sol:['As pontas das pernas são pontos do piso.','Três pontos não colineares determinam um único plano. Logo, uma mesa de 3 pernas sempre se apoia nesse plano e fica firme.','Quatro pontos podem não ser coplanares. Se uma perna ficar fora do plano das outras três, a mesa balança. O calço corrige isso.'],
+ ans:'3 pontos não colineares sempre determinam um plano; 4 pontos nem sempre.'},
+{id:'g2',g:'g',title:'Determinação de um plano',fig:()=>cube({faces:['ABCD'],lines:[['A','B'],['B','D']]}),
+ formula:{lead:'Um plano fica determinado por qualquer uma destas quatro condições.',
+  eq:['3 pontos não colineares','2 retas paralelas distintas','2 retas concorrentes','1 reta e 1 ponto fora dela'],
+  notes:['Notação: $p(A,B,C)$, $p(a,b)$, $p(r,s)$, $p(A,r)$.']},
+ ex:'No cubo ABCDEFGH (ABCD embaixo, EFGH em cima, E sobre A), qual é o plano determinado pelas retas: a) AB e BD; b) AD e EH; c) GH e CG; d) EH e BC?',
+ sol:['a) AB e BD são concorrentes em B. Elas contêm A, B e D, que determinam o plano da base ABCD.','b) AD e EH são paralelas distintas. Elas determinam o plano da face ADHE.','c) GH e CG são concorrentes em G. Elas determinam o plano da face CDHG.','d) EH e BC são paralelas distintas. Elas determinam o plano EBCH (plano diagonal).'],
+ ans:'a) plano ABCD; b) plano ADHE; c) plano CDHG; d) plano EBCH'},
+{id:'g3',g:'g',title:'Contando planos: três retas paralelas e quatro pontos',fig:null,
+ formula:{lead:'Conte as combinações que realmente determinam planos. A conta muda se os elementos forem coplanares.',
+  eq:['C(n,2) = [n(n − 1)|2]','C(n,3) = [n(n − 1)(n − 2)|6]'],
+  notes:['Retas paralelas duas a duas, fora de um mesmo plano: cada par determina um plano, $C(n,2)$.','Pontos sem 3 colineares e fora de um mesmo plano: cada trio determina um plano, $C(n,3)$.']},
+ ex:'a) Quantos planos são determinados por três retas distintas, paralelas duas a duas? b) Quantos planos são determinados por quatro pontos, distintos dois a dois?',
+ sol:['a) Cada par de paralelas determina um plano. Com 3 retas há 3 pares: $C(3,2) = 3$ planos. Se as três estiverem num mesmo plano, existe 1 só.','b) Se os 4 pontos não forem coplanares (e nenhum trio colinear), cada trio determina um plano: $C(4,3) = 4$ planos.','Se forem coplanares sem 3 colineares, há 1 plano. Se 3 forem colineares e 1 estiver fora, há 1 plano (reta e ponto fora dela). Se todos forem colineares, há infinitos planos.'],
+ ans:'a) 3 planos (caso geral); b) 4 planos (caso geral), podendo ser 1 se forem coplanares'},
+{id:'g4',g:'g',title:'Quatro retas concorrentes duas a duas',fig:null,
+ formula:{lead:'Duas retas concorrentes determinam um plano. Se uma terceira reta corta duas retas de um plano em pontos distintos, ela tem 2 pontos nesse plano e fica contida nele (postulado da inclusão).',
+  eq:['2 pontos de uma reta em α ⇒ reta ⊂ α'],
+  notes:['Contar $C(4,2) = 6$ planos é o erro mais comum neste exercício.']},
+ ex:'Quantos planos distintos são determinados por quatro retas distintas, duas a duas concorrentes em pontos todos distintos?',
+ sol:['Pegue as retas $a$ e $b$. Elas se cortam e determinam um plano $α$.','A reta $c$ corta $a$ e $b$ em pontos distintos. Logo $c$ tem dois pontos em $α$ e está contida em $α$.','O mesmo vale para $d$: ela corta $a$ e $b$ em pontos distintos e está em $α$.','As quatro retas ficam no mesmo plano.'],
+ ans:'1 plano (raciocínio feito a partir dos postulados; o material não traz o gabarito deste item)'},
+{id:'g5',g:'g',title:'Posições relativas de duas retas',fig:()=>cube({lines:[['A','B'],['C','G']]}),
+ formula:{lead:'Duas retas distintas no espaço são coplanares (paralelas ou concorrentes) ou reversas.',
+  eq:[{t:'Concorrentes',e:'r ∩ s = {P}'},{t:'Paralelas (coplanares)',e:'r ∩ s = ∅, no mesmo plano'},{t:'Reversas',e:'r ∩ s = ∅, sem plano que contenha as duas'}],
+  notes:['Duas retas concorrentes são sempre coplanares.','Reversas não têm ponto comum e também não são paralelas.']},
+ ex:'No cubo ABCDEFGH, classifique os pares de retas: a) AB e BC; b) AB e EF; c) AB e CG; d) AB e EH.',
+ sol:['a) AB e BC se cortam em B: concorrentes.','b) AB e EF são arestas opostas da face da frente, no mesmo plano e sem ponto comum: paralelas.','c) AB e CG não têm ponto comum e nenhum plano contém as duas: reversas.','d) AB e EH também não se cortam e não são coplanares: reversas.'],
+ ans:'a) concorrentes; b) paralelas; c) reversas; d) reversas'},
+{id:'g6',g:'g',title:'Perpendiculares, oblíquas e ortogonais',fig:()=>cube({lines:[['A','B'],['C','G']]}),
+ formula:{lead:'O ângulo reto aparece em retas concorrentes (perpendiculares) e também em reversas (ortogonais).',
+  eq:[{t:'Perpendiculares',e:'~concorrentes, ângulo de 90°  (r ⊥ s)'},{t:'Oblíquas',e:'concorrentes sem formar 90°'},{t:'Ortogonais',e:'~reversas a e b, com c ∥ a, c concorrente com b e c ⊥ b'}],
+  notes:['No plano, duas retas perpendiculares a uma terceira são paralelas. No espaço, não.']},
+ ex:'No cubo, AB e CG são perpendiculares ou ortogonais?',
+ sol:['AB e CG não têm ponto comum e não são coplanares: são reversas. Então não podem ser perpendiculares.','Trace por C uma reta paralela a AB: é a reta CD.','CD e CG se cortam em C e formam ângulo reto (arestas de uma mesma face).','Como CD ∥ AB e CD ⊥ CG, AB e CG são ortogonais.'],
+ ans:'AB e CG são reversas e ortogonais'},
+{id:'g7',g:'g',title:'Retas no prisma triangular (verdadeiro ou falso)',fig:null,
+ formula:{lead:'Num prisma reto de base triangular, as arestas verticais são paralelas entre si e perpendiculares às bases. O prisma tem triângulo ABC em cima e DEF embaixo (A sobre D, B sobre E, C sobre F).',
+  eq:['arestas verticais ∥ entre si','vertical ⟂ qualquer reta da base'],
+  notes:['Use a classificação: concorrentes, paralelas, reversas, ortogonais.']},
+ ex:'Classifique em V ou F: a) AB e DE são reversas; b) AC e FC são concorrentes; c) AD e CF são coplanares; d) AB e EF são paralelas; e) DE e CF são ortogonais.',
+ sol:['a) AB e DE são arestas correspondentes dos dois triângulos: paralelas, não reversas. Falso.','b) AC e FC passam por C. Verdadeiro.','c) AD e CF são arestas verticais, paralelas, portanto coplanares. Verdadeiro.','d) AB é paralela a DE, mas EF é outra aresta da base. AB e EF não têm ponto comum e não são coplanares: reversas. Falso.','e) DE está na base e CF é perpendicular à base, então formam 90° sem se cortar: ortogonais. Verdadeiro.'],
+ ans:'a) F; b) V; c) V; d) F; e) V'},
+{id:'g8',g:'g',title:'Perpendicularismo: verdadeiro ou falso',fig:null,
+ formula:{lead:'No espaço, a regra do plano “duas perpendiculares a uma terceira são paralelas” deixa de valer.',
+  eq:['~no plano: a ⟂ b e c ⟂ b ⇒ a ∥ c','~no espaço: a ⟂ b e c ⟂ b ⇒ a e c podem ser paralelas, concorrentes ou reversas'],
+  notes:['Perpendiculares são sempre concorrentes. Ângulo reto sozinho não garante isso.']},
+ ex:'Classifique em V ou F: a) Duas retas perpendiculares são sempre concorrentes. b) Se duas retas formam ângulo reto, então são perpendiculares. c) Duas retas que formam ângulo reto podem ser reversas. d) Duas retas perpendiculares a uma terceira são perpendiculares entre si. e) Duas retas perpendiculares a uma terceira são paralelas entre si.',
+ sol:['a) Perpendiculares são concorrentes por definição. Verdadeiro.','b) Reversas ortogonais também formam ângulo reto e não são perpendiculares. Falso.','c) Sim, são as ortogonais. Verdadeiro.','d) No espaço, perpendiculares a uma terceira podem ser paralelas ou reversas. Falso.','e) Pelo mesmo motivo, só valeria no plano. Falso.'],
+ ans:'a) V; b) F; c) V; d) F; e) F (os itens a e c têm gabarito no material; b, d e e foram deduzidos)'},
+{id:'g9',g:'g',title:'Reta e plano: posições e verdadeiro ou falso',fig:linePlane,
+ formula:{lead:'A posição depende só do número de pontos comuns entre a reta $r$ e o plano $α$.',
+  eq:[{t:'Contida',e:'r ∩ α = r  (2 pontos comuns)'},{t:'Secante',e:'r ∩ α = {P}  (P é o traço)'},{t:'Paralela',e:'r ∩ α = ∅'}],
+  notes:['Reta e plano com 2 pontos comuns: a reta está contida (inclusão).']},
+ ex:'Classifique em V ou F: a) Uma reta e um plano que têm um ponto comum são secantes. b) Uma reta e um plano secantes têm um único ponto comum. c) Uma reta e um plano paralelos não têm ponto comum. d) Um plano e uma reta podem ter exatamente 2 pontos em comum. e) Se uma reta está contida num plano, eles têm infinitos pontos em comum.',
+ sol:['a) Com um ponto comum a reta pode estar contida (e aí tem infinitos). Falso.','b) Secante significa exatamente um ponto. Verdadeiro.','c) É a definição de paralelos. Verdadeiro.','d) Com 2 pontos comuns a reta fica contida e tem infinitos. Falso.','e) Todos os pontos da reta pertencem ao plano. Verdadeiro.'],
+ ans:'a) F; b) V; c) V; d) F; e) V'},
+{id:'g10',g:'g',title:'Reta e plano no cubo',fig:()=>cube({faces:['CDHG'],lines:[['A','B'],['A','D']]}),
+ formula:{lead:'Procure uma reta do plano paralela à reta dada (então ela é paralela ao plano) ou veja onde a reta fura o plano.',
+  eq:['~r ∦ α e r ∥ reta de α ⇒ r ∥ α','r fura α em P ⇒ secante'],
+  notes:['Plano (CDG) é o plano da face CDHG.']},
+ ex:'No cubo ABCDEFGH, dê a posição relativa entre: a) a reta AB e o plano (CDG); b) a reta AD e o plano (CDG); c) a reta ED e o plano (ABC); d) o plano (ABC) e o plano (EHD); e) o plano de EF e GH e o plano de EF e FG.',
+ sol:['a) AB ∥ DC e DC está no plano (CDG). AB não está nele: AB é paralela ao plano.','b) AD fura o plano (CDG) no ponto D. É secante (e perpendicular ao plano).','c) ED encontra o plano da base (ABC) em D. É secante (oblíqua).','d) (ABC) é a base e (EHD) é a face ADHE. Têm a reta AD em comum: planos secantes.','e) EF ∥ GH determinam a face EFGH. EF e FG concorrentes em F também determinam EFGH: o mesmo plano, coincidentes.'],
+ ans:'a) paralela; b) secante; c) secante; d) planos secantes (interseção AD); e) planos coincidentes (a leitura das figuras do cubo foi feita por dedução)'},
+{id:'g11',g:'g',title:'Dois planos: paralelos ou secantes',fig:twoPlanes,
+ formula:{lead:'Dois planos distintos ou não têm ponto comum (paralelos) ou têm uma reta comum (secantes).',
+  eq:[{t:'Paralelos',e:'α ∩ β = ∅'},{t:'Secantes',e:'α ∩ β = i (reta)'},{t:'Postulado da interseção',e:'um ponto comum ⇒ existe outro ponto comum'}],
+  notes:['A reta $i$ é a interseção, ou traço, de um plano no outro.']},
+ ex:'No cubo, os planos α, β e γ contêm as faces EFGH, BCGF e ADHE. Qual a posição de cada par?',
+ sol:['β (face BCGF) e γ (face ADHE) são faces opostas: planos paralelos distintos.','α e β têm a aresta FG em comum: secantes, com α ∩ β = FG.','α e γ têm a aresta EH em comum: secantes, com α ∩ γ = EH.'],
+ ans:'β ∥ γ; α ∩ β = FG; α ∩ γ = EH'},
+{id:'g12',g:'g',title:'Planos: verdadeiro ou falso',fig:twoPlanes,
+ formula:{lead:'Use a interseção de planos e a transitividade do paralelismo.',
+  eq:['~dois planos com um ponto comum têm uma reta comum','~planos paralelos a um terceiro são paralelos entre si'],
+  notes:['Planos secantes têm infinitos pontos comuns (a reta de interseção).']},
+ ex:'Classifique em V ou F: a) Se dois planos distintos têm um ponto comum, então têm uma reta comum que passa por esse ponto. b) Dois planos distintos que têm uma reta comum são secantes. c) Se dois planos têm uma única reta comum, são secantes. d) Dois planos secantes têm infinitos pontos comuns. e) Dois planos distintos, paralelos a um terceiro, são paralelos entre si.',
+ sol:['a) Postulado e propriedade da interseção. Verdadeiro.','b) Têm pontos comuns, então não são paralelos: secantes. Verdadeiro.','c) Verdadeiro.','d) A reta de interseção tem infinitos pontos. Verdadeiro.','e) Pelo paralelismo transitivo de planos esta afirmação é verdadeira.'],
+ ans:'a) V; b) V; c) V; d) V; e) V pela teoria (o gabarito escrito no material marca F; vale confirmar com a professora)'},
+{id:'g13',g:'g',title:'Reta perpendicular a plano e retas oblíquas',fig:linePlane,
+ formula:{lead:'Basta duas retas concorrentes do plano para garantir a perpendicularidade com o plano.',
+  eq:['r ⟂ α ⇔ r ⟂ 2 retas concorrentes de α, em P','~r fura α e não é ⟂ ⇒ r é oblíqua a α'],
+  notes:['O ponto $P$ é o pé da perpendicular.','Uma reta pode ser perpendicular a uma reta do plano e não ser perpendicular ao plano.']},
+ ex:'Uma reta $r$ é perpendicular a uma reta $s$ de um plano $α$ e fura o plano. Podemos concluir que $r ⟂ α$?',
+ sol:['Perpendicular ao plano exige ser perpendicular a todas as retas do plano que passam pelo ponto de interseção.','O teorema fundamental diz que basta ser perpendicular a duas retas concorrentes do plano.','Aqui só se sabe de uma reta, $s$. Falta uma segunda: $r$ pode estar inclinada em relação ao plano.'],
+ ans:'Não. Só com uma reta $s$ não dá para concluir; precisa de duas concorrentes.'},
+{id:'g14',g:'g',title:'Projeção ortogonal',fig:linePlane,
+ formula:{lead:'A projeção ortogonal leva cada ponto ao pé da perpendicular traçada ao plano.',
+  eq:['P′ = pé da perpendicular por P a α','P ∈ α ⇒ P ≡ P′'],
+  notes:['A projeção de uma figura é formada pelas projeções de todos os seus pontos.','Figura plana paralela ao plano projeta uma figura congruente.']},
+ ex:'Qual é a projeção ortogonal de um ponto $P$ que já pertence ao plano $α$? E de um triângulo $H$ paralelo a $α$?',
+ sol:['Se $P ∈ α$, a perpendicular por $P$ encontra o plano no próprio $P$. Logo $P ≡ P′$.','Cada vértice do triângulo desce na vertical até o plano.','Como o triângulo é paralelo a $α$, os três pés formam um triângulo $H′$ igual ao original.'],
+ ans:'$P′ = P$ e $H′$ é congruente a $H$'},
+{id:'g15',g:'g',title:'Propriedades de retas e planos',fig:twoPlanes,
+ formula:{lead:'As nove propriedades do livro, em resumo.',
+  eq:['~1. r ∥ α ⇒ r ∥ infinitas retas de α','~2. r ∥ α ⇒ r reversa a infinitas retas de α','~3. r secante a α ⇒ concorrente a infinitas retas de α','~4. r secante a α ⇒ reversa a infinitas retas de α','~5. r ⊂ α ⇒ ∥ ou concorrente a infinitas retas de α','~6. α, β secantes em i ⇒ infinitas retas de um ∥ i','~7. α, β secantes em i ⇒ infinitas retas de um concorrentes com i','~8. α ∥ β ⇒ toda reta de um é ∥ ao outro','~9. plano corta 2 planos ∥ ⇒ interseções são retas ∥'],
+  notes:[]},
+ ex:'Se uma reta $r$ é paralela a um plano $α$, qual é a posição de $r$ em relação a uma reta $s$ contida em $α$? E se $r$ é secante a $α$?',
+ sol:['$r ∥ α$ não tem ponto comum com o plano, então não encontra $s$. Se $r$ e $s$ forem coplanares são paralelas; se não, são reversas.','$r$ secante fura $α$ em $P$. Se $s$ passa por $P$, são concorrentes. Se $s$ não passa por $P$, são reversas.'],
+ ans:'$r ∥ α$: $r$ e $s$ são paralelas ou reversas. $r$ secante: concorrentes ou reversas.',
+ doubt:'**Se dois planos são paralelos, toda reta de um é paralela a qualquer reta do outro?** Não. Ela é paralela ao outro plano, mas em relação às retas dele pode ser paralela ou reversa.'}
+];
+
+/* ---------- figuras dos sólidos ---------- */
+const W_=(vb,inner,label)=>'<svg class="fig" viewBox="'+vb+'" role="img" aria-label="'+label+'">'+inner+'</svg>';
+const D_=(c,d)=>'<path class="'+c+(c==='d'?' fade':' draw')+'"'+(c==='d'?'':' pathLength="1"')+' d="'+d+'"/>';
+const poly=pts=>pts.map((p,i)=>(i?'L':'M')+p[0].toFixed(1)+' '+p[1].toFixed(1)).join(' ')+' Z';
+function fBox(){return W_('0 0 240 220',D_('s','M30 100 H150 V190 H30 Z M30 100 L80 65 H200 L150 100 M150 100 L200 65 V155 L150 190')+D_('d','M30 190 L80 155 H200 M80 155 V65')+D_('v','M30 190 H150')+D_('p','M150 190 L200 155')+D_('h','M30 190 V100')+T_(84,208,'a','tv')+T_(200,180,'b','tp')+T_(14,150,'c','th'),'Paralelepípedo');}
+function fCil(){return W_('0 0 210 220','<ellipse class="s draw" pathLength="1" cx="100" cy="45" rx="60" ry="18"/>'+D_('s','M40 45 V175 M160 45 V175 M40 175 A60 18 0 0 0 160 175')+D_('d','M40 175 A60 18 0 0 1 160 175')+D_('p','M100 45 H160')+D_('h','M184 45 V175')+T_(124,38,'r','tp')+T_(190,115,'h','th'),'Cilindro');}
+function fAnel(){return W_('0 0 210 220','<ellipse class="s draw" pathLength="1" cx="100" cy="50" rx="70" ry="22"/><ellipse class="s draw" pathLength="1" cx="100" cy="50" rx="38" ry="12"/>'+D_('s','M30 50 V150 M170 50 V150 M30 150 A70 22 0 0 0 170 150')+D_('d','M30 150 A70 22 0 0 1 170 150 M62 50 V150 M138 50 V150 M62 150 A38 12 0 0 0 138 150')+D_('v','M138 50 H170')+D_('p','M100 50 H138')+D_('h','M184 50 V150')+T_(114,44,'r','tp')+T_(150,44,'R','tv')+T_(190,105,'h','th'),'Anel (cilindro vazado)');}
+function fPH(){const T=[[40,60],[70,42],[130,42],[160,60],[130,78],[70,78]],B=T.map(p=>[p[0],p[1]+110]);
+  return W_('0 0 200 220',D_('s',poly(T)+' M40 60 V170 M160 60 V170 M130 78 V188 M70 78 V188 M40 170 L70 188 L130 188 L160 170')+D_('d','M70 42 V152 M130 42 V152 M40 170 L70 152 L130 152 L160 170')+D_('v','M40 170 L70 188')+D_('h','M178 60 V170')+T_(94,208,'l','tv')+T_(184,120,'h','th'),'Prisma hexagonal');}
+function fEsf(){return W_('0 0 200 220','<circle class="s draw" pathLength="1" cx="100" cy="110" r="70"/>'+D_('s','M30 110 A70 20 0 0 0 170 110')+D_('d','M30 110 A70 20 0 0 1 170 110')+D_('p','M100 110 H170')+'<circle cx="100" cy="110" r="3" fill="currentColor"/>'+T_(130,104,'r','tp'),'Esfera');}
+function ringPoly(n,r,a0,cx,cy){return Array.from({length:n},(_,k)=>[cx+r*Math.cos((a0+360/n*k)*Math.PI/180),cy+r*Math.sin((a0+360/n*k)*Math.PI/180)]);}
+function fDod(){const I=ringPoly(5,30,-90,100,100),S=ringPoly(5,70,-90,100,100),O=ringPoly(5,82,-54,100,100);let d=poly(I);
+  for(let k=0;k<5;k++){d+=' M'+I[k][0].toFixed(1)+' '+I[k][1].toFixed(1)+' L'+S[k][0].toFixed(1)+' '+S[k][1].toFixed(1)+' L'+O[k][0].toFixed(1)+' '+O[k][1].toFixed(1)+' L'+S[(k+1)%5][0].toFixed(1)+' '+S[(k+1)%5][1].toFixed(1);}
+  return W_('0 0 200 200',D_('s',d)+T_(78,196,'12 faces pentagonais',1),'Dodecaedro');}
+function fIco(){const R=ringPoly(5,36,-90,100,100),Q=ringPoly(5,84,-54,100,100);let d=poly(Q)+' '+poly(R);
+  for(let k=0;k<5;k++){d+=' M100 100 L'+R[k][0].toFixed(1)+' '+R[k][1].toFixed(1)+' M'+R[k][0].toFixed(1)+' '+R[k][1].toFixed(1)+' L'+Q[k][0].toFixed(1)+' '+Q[k][1].toFixed(1)+' M'+R[(k+1)%5][0].toFixed(1)+' '+R[(k+1)%5][1].toFixed(1)+' L'+Q[k][0].toFixed(1)+' '+Q[k][1].toFixed(1);}
+  return W_('0 0 200 200',D_('s',d)+T_(60,196,'20 faces triangulares',1),'Icosaedro');}
+function fOct(){return W_('0 0 200 220',D_('s','M100 20 L30 115 L100 200 L170 115 Z M100 20 L105 140 L100 200 M30 115 L105 140 L170 115')+D_('d','M30 115 L95 90 L170 115 M100 20 L95 90 L100 200')+T_(176,112,'a','tv')+T_(60,214,'8 faces triangulares',1),'Octaedro');}
+function fCone(){return W_('0 0 210 220',D_('s','M100 20 L35 170 M100 20 L165 170 M35 170 A65 20 0 0 0 165 170')+D_('d','M35 170 A65 20 0 0 1 165 170')+D_('h','M100 20 V170')+D_('p','M100 170 H165')+D_('m','M100 20 L165 170')+D_('g','M100 160 H110 V170')+T_(88,100,'h','th')+T_(128,164,'r','tp')+T_(146,92,'g','ta'),'Cone');}
+function fStar(){const st=(cy)=>Array.from({length:10},(_,k)=>{const R=k%2?30:62,a=(-90+36*k)*Math.PI/180;return [110+R*Math.cos(a),cy+0.38*R*Math.sin(a)];});
+  const t=st(70),b=st(165);let v='';let vd='';
+  for(let k=0;k<10;k+=2){const seg=' M'+t[k][0].toFixed(1)+' '+t[k][1].toFixed(1)+' V'+b[k][1].toFixed(1);(t[k][1]>=70?v+=seg:vd+=seg);}
+  return W_('0 0 220 230',D_('s',poly(t)+poly(b)+v)+D_('d',vd)+D_('h','M204 70 V165')+T_(208,120,'h','th'),'Prisma de base em forma de estrela');}
+function fCubo(){return cube({lines:[['A','G']]});}
+function fPT(){return W_('0 0 210 220',D_('s','M40 75 H140 L180 45 Z M40 75 V175 H140 V75 M140 75 L180 45 V145 L140 175 M40 175 H140')+D_('d','M40 175 L180 145 M40 75 L180 45')+D_('h','M24 75 V175')+D_('g','M40 165 H50 V175')+T_(8,130,'h','th'),'Prisma triangular')+'';}
+function fTor(){return W_('0 0 230 200','<ellipse class="s draw" pathLength="1" cx="110" cy="100" rx="95" ry="50"/><ellipse class="s draw" pathLength="1" cx="110" cy="100" rx="38" ry="14"/>'+D_('d','M62 100 Q110 62 158 100')+'<circle class="d fade" cx="176" cy="100" r="28"/>'+D_('v','M110 100 H176')+D_('p','M176 100 H204')+T_(138,94,'R','tv')+T_(184,90,'r','tp'),'Toroide');}
+function fMeia(){return W_('0 0 200 190',D_('s','M30 130 A70 70 0 0 1 170 130 M30 130 A70 18 0 0 0 170 130')+D_('d','M30 130 A70 18 0 0 1 170 130')+D_('p','M100 130 H170')+D_('p','M100 130 V60')+D_('g','M100 120 H110 V130')+T_(130,124,'r','tp')+T_(108,96,'r','tp'),'Meia esfera');}
+
+/* ---------- fichas dos sólidos ---------- */
+TOP.push(
+{id:'s1',g:'s',title:'Paralelepípedo retângulo',fig:fBox,
+ formula:{lead:'Bloco de 6 faces retangulares, com arestas $a$, $b$ e $c$ (comprimento, largura e altura).',eq:['V = a·b·c','A_t = 2·(a·b + a·c + b·c)','D = √(a^2 + b^2 + c^2)'],notes:['$D$ é a diagonal do bloco, de um vértice ao vértice oposto.']},
+ ex:'Paralelepípedo de arestas 3 cm, 4 cm e 12 cm. Calcule o volume, a área total e a diagonal.',
+ sol:['Volume: $V = 3·4·12 = 144$ cm³.','Área total: $A_t = 2·(3·4 + 3·12 + 4·12) = 2·(12 + 36 + 48) = 192$ cm².','Diagonal: $D = √(9 + 16 + 144) = √169 = 13$ cm.'],
+ ans:'$V = 144$ cm³, $A_t = 192$ cm² e $D = 13$ cm'},
+{id:'s2',g:'s',title:'Cilindro',fig:fCil,
+ formula:{lead:'Duas bases circulares de raio $r$ e uma superfície lateral que, aberta, vira um retângulo de lados $2πr$ e $h$.',eq:['A_B = π·r^2','A_L = 2·π·r·h','A_t = 2·π·r·(r + h)','V = π·r^2·h'],notes:['$A_t = 2A_B + A_L$.']},
+ ex:'Cilindro de raio 3 cm e altura 10 cm. Calcule a área lateral, a área total e o volume.',
+ sol:['Lateral: $A_L = 2·π·3·10 = 60π$ cm².','Base: $A_B = π·3^2 = 9π$ cm².','Total: $A_t = 2·9π + 60π = 78π$ cm².','Volume: $V = 9π·10 = 90π$ cm³.'],
+ ans:'$A_L = 60π ≈ 188,50$ cm², $A_t = 78π ≈ 245,04$ cm² e $V = 90π ≈ 282,74$ cm³'},
+{id:'s3',g:'s',title:'Anel (cilindro vazado)',fig:fAnel,
+ formula:{lead:'Cilindro de raio externo $R$ com um furo cilíndrico de raio $r$ e mesma altura $h$. Se o seu anel for de formato redondo como uma rosca, veja o Toroide.',eq:['V = π·h·(R^2 − r^2)','A_L = 2·π·h·(R + r)','A_t = 2·π·h·(R + r) + 2·π·(R^2 − r^2)'],notes:['Volume: cilindro grande menos o cilindro do furo.','Superfície: paredes externa e interna, mais as duas coroas circulares do topo e da base.']},
+ ex:'Anel com $R = 5$ cm, $r = 3$ cm e altura $h = 2$ cm. Calcule o volume e a área total.',
+ sol:['Volume: $V = π·2·(25 − 9) = 32π$ cm³.','Paredes: $A_L = 2·π·2·(5 + 3) = 32π$ cm².','Duas coroas: $2·π·(25 − 9) = 32π$ cm².','Total: $A_t = 32π + 32π = 64π$ cm².'],
+ ans:'$V = 32π ≈ 100,53$ cm³ e $A_t = 64π ≈ 201,06$ cm²'},
+{id:'s4',g:'s',title:'Prisma hexagonal regular',fig:fPH,
+ formula:{lead:'Duas bases hexágonos regulares de aresta $l$ e 6 faces laterais retangulares de altura $h$.',eq:['A_B = [3·l^2·√3|2]','A_L = 6·l·h','A_t = 2·A_B + A_L','V = A_B·h'],notes:['Em todo prisma: $V = A_B·h$ e $A_L$ = perímetro da base vezes $h$.']},
+ ex:'Prisma hexagonal regular com aresta da base 4 cm e altura 10 cm. Calcule a área total e o volume.',
+ sol:['Base: $A_B = [3·16·√3|2] = 24√3 ≈ 41,57$ cm².','Lateral: $A_L = 6·4·10 = 240$ cm².','Total: $A_t = 2·24√3 + 240 = 48√3 + 240 ≈ 323,14$ cm².','Volume: $V = 24√3·10 = 240√3 ≈ 415,69$ cm³.'],
+ ans:'$A_t = 240 + 48√3 ≈ 323,14$ cm² e $V = 240√3 ≈ 415,69$ cm³'},
+{id:'s5',g:'s',title:'Esfera',fig:fEsf,
+ formula:{lead:'Todos os pontos estão a uma distância $r$ do centro.',eq:['A = 4·π·r^2','V = [4·π·r^3|3]'],notes:['A superfície da esfera é 4 vezes a área de um círculo máximo.']},
+ ex:'Esfera de raio 6 cm. Calcule a área da superfície e o volume.',
+ sol:['Área: $A = 4·π·6^2 = 144π$ cm².','Volume: $V = [4·π·6^3|3] = [4·216·π|3] = 288π$ cm³.'],
+ ans:'$A = 144π ≈ 452,39$ cm² e $V = 288π ≈ 904,78$ cm³'},
+{id:'s6',g:'s',title:'Dodecaedro regular',fig:fDod,
+ formula:{lead:'12 faces que são pentágonos regulares de aresta $a$.',eq:['A_t = 3·√(25 + 10√5)·a^2','V = [15 + 7√5|4]·a^3'],notes:['Aproximações úteis: $A_t ≈ 20,65·a^2$ e $V ≈ 7,66·a^3$.']},
+ ex:'Dodecaedro regular de aresta 2 cm. Calcule a área total e o volume.',
+ sol:['Área: $A_t ≈ 20,65·2^2 = 82,58$ cm² (exato: $12·√(25 + 10√5) ≈ 82,58$).','Volume: $V ≈ 7,66·2^3 = 61,31$ cm³.'],
+ ans:'$A_t ≈ 82,58$ cm² e $V ≈ 61,31$ cm³',
+ doubt:'**De onde vêm as constantes?** Cada face é um pentágono regular de área $≈ 1,72·a^2$, e $12·1,72 ≈ 20,65$.'},
+{id:'s7',g:'s',title:'Pirâmide quadrada',fig:pyr,
+ formula:{lead:'Base quadrada de lado $a$ e 4 faces laterais triangulares. É o caso mais comum das pirâmides regulares.',eq:['a_p = √(h^2 + ([a|2])^2)','A_L = 2·a·a_p','A_t = a^2 + 2·a·a_p','V = [a^2·h|3]'],notes:['$a_p$ é o apótema da pirâmide e $h$ a altura. Mais detalhes nas fichas de Pirâmides.']},
+ ex:'Pirâmide quadrada com aresta da base 6 cm e altura 4 cm. Calcule o apótema, a área total e o volume.',
+ sol:['Apótema: $a_p = √(16 + 9) = 5$ cm.','Lateral: $A_L = 2·6·5 = 60$ cm².','Total: $A_t = 36 + 60 = 96$ cm².','Volume: $V = [36·4|3] = 48$ cm³.'],
+ ans:'$a_p = 5$ cm, $A_t = 96$ cm² e $V = 48$ cm³'},
+{id:'s8',g:'s',title:'Octaedro regular',fig:fOct,
+ formula:{lead:'8 faces que são triângulos equiláteros de aresta $a$. É a união de duas pirâmides quadradas.',eq:['A_t = 2·a^2·√3','V = [a^3·√2|3]'],notes:['A altura de cada pirâmide é $[a·√2|2]$.']},
+ ex:'Octaedro regular de aresta 4 cm. Calcule a área total e o volume.',
+ sol:['Área: $A_t = 2·4^2·√3 = 32√3 ≈ 55,43$ cm².','Volume: $V = [4^3·√2|3] = [64√2|3] ≈ 30,17$ cm³.'],
+ ans:'$A_t = 32√3 ≈ 55,43$ cm² e $V = [64√2|3] ≈ 30,17$ cm³'},
+{id:'s9',g:'s',title:'Cone circular reto',fig:fCone,
+ formula:{lead:'Base circular de raio $r$, altura $h$ e geratriz $g$ (segmento do vértice à borda da base).',eq:['g^2 = h^2 + r^2','A_L = π·r·g','A_t = π·r·(r + g)','V = [π·r^2·h|3]'],notes:['Aberta, a superfície lateral vira um setor circular de ângulo $θ = 360°·[r|g]$.']},
+ ex:'Cone com raio 3 cm e altura 4 cm. Calcule a geratriz, a área total, o volume e o ângulo do setor.',
+ sol:['Geratriz: $g^2 = 16 + 9 = 25$, logo $g = 5$ cm.','Lateral: $A_L = π·3·5 = 15π$ cm². Total: $A_t = π·3·(3 + 5) = 24π$ cm².','Volume: $V = [π·9·4|3] = 12π$ cm³.','Setor: $θ = 360°·[3|5] = 216°$.'],
+ ans:'$g = 5$ cm, $A_t = 24π ≈ 75,40$ cm², $V = 12π ≈ 37,70$ cm³ e $θ = 216°$'},
+{id:'s10',g:'s',title:'Prisma de base em estrela',fig:fStar,
+ formula:{lead:'A base é uma estrela (polígono não convexo). Valem as regras gerais dos prismas, e a área da estrela se obtém por decomposição.',eq:['V = A_B·h','A_L = P·h','A_t = 2·A_B + A_L'],notes:['$P$ é o perímetro da estrela (soma de todos os lados do contorno).','Estrela de 5 pontas = pentágono regular central + 5 triângulos nas pontas.']},
+ ex:'<span class="extra">extra</span><br>A base é um pentágono regular de lado 2 cm com um triângulo equilátero de lado 2 cm sobre cada lado. A altura do prisma é 5 cm. Calcule o volume e a área total.',
+ sol:['Pentágono regular: $A ≈ 1,72·2^2 = 6,88$ cm². Cinco triângulos: $5·[2^2·√3|4] = 5√3 ≈ 8,66$ cm².','Base: $A_B ≈ 6,88 + 8,66 = 15,54$ cm².','Perímetro: a estrela tem 10 lados de 2 cm, então $P = 20$ cm.','Volume: $V ≈ 15,54·5 = 77,7$ cm³. Lateral: $A_L = 20·5 = 100$ cm².','Total: $A_t ≈ 2·15,54 + 100 = 131,08$ cm².'],
+ ans:'$V ≈ 77,7$ cm³ e $A_t ≈ 131,08$ cm² (a estrela depende do desenho; use a decomposição que a figura da prova mostrar)'},
+{id:'s11',g:'s',title:'Cubo',fig:fCubo,
+ formula:{lead:'6 faces quadradas de aresta $a$.',eq:['V = a^3','A_t = 6·a^2','d = a·√2','D = a·√3'],notes:['$d$ é a diagonal de uma face e $D$ a diagonal do cubo.']},
+ ex:'Cubo de aresta 5 cm. Calcule o volume, a área total e as diagonais.',
+ sol:['Volume: $V = 5^3 = 125$ cm³.','Área total: $A_t = 6·25 = 150$ cm².','Diagonal da face: $d = 5√2 ≈ 7,07$ cm.','Diagonal do cubo: $D = 5√3 ≈ 8,66$ cm.'],
+ ans:'$V = 125$ cm³, $A_t = 150$ cm², $d ≈ 7,07$ cm e $D ≈ 8,66$ cm'},
+{id:'s12',g:'s',title:'Prisma triangular reto',fig:fPT,
+ formula:{lead:'Duas bases triangulares iguais e 3 faces laterais retangulares. Para base equilátera de lado $l$:',eq:['A_B = [l^2·√3|4]','A_L = 3·l·h','A_t = 2·A_B + A_L','V = A_B·h'],notes:['Para outro triângulo, use a área dele e o seu perímetro: $A_L = P·h$.']},
+ ex:'Prisma triangular reto com base equilátera de lado 6 cm e altura 10 cm. Calcule a área total e o volume.',
+ sol:['Base: $A_B = [36·√3|4] = 9√3 ≈ 15,59$ cm².','Lateral: $A_L = 3·6·10 = 180$ cm².','Total: $A_t = 18√3 + 180 ≈ 211,18$ cm².','Volume: $V = 9√3·10 = 90√3 ≈ 155,88$ cm³.'],
+ ans:'$A_t = 180 + 18√3 ≈ 211,18$ cm² e $V = 90√3 ≈ 155,88$ cm³'},
+{id:'s13',g:'s',title:'Toroide',fig:fTor,
+ formula:{lead:'Sólido gerado por um círculo de raio $r$ que gira em torno de um eixo, a uma distância $R$ do centro do círculo (rosca ou boia).',eq:['A = 4·π^2·R·r','V = 2·π^2·R·r^2'],notes:['Vem dos teoremas de Pappus: área = comprimento da circunferência × caminho do centro.']},
+ ex:'Toroide com $R = 7$ cm e $r = 3$ cm. Calcule a área da superfície e o volume.',
+ sol:['Área: $A = 4·π^2·7·3 = 84π^2$ cm².','Volume: $V = 2·π^2·7·9 = 126π^2$ cm³.','Com $π^2 ≈ 9,87$: $A ≈ 829,05$ e $V ≈ 1243,57$.'],
+ ans:'$A = 84π^2 ≈ 829,05$ cm² e $V = 126π^2 ≈ 1243,57$ cm³'},
+{id:'s14',g:'s',title:'Icosaedro regular',fig:fIco,
+ formula:{lead:'20 faces que são triângulos equiláteros de aresta $a$.',eq:['A_t = 5·√3·a^2','V = [5·(3 + √5)|12]·a^3'],notes:['A área vem de $20·[a^2·√3|4]$. Aproximação: $V ≈ 2,18·a^3$.']},
+ ex:'Icosaedro regular de aresta 3 cm. Calcule a área total e o volume.',
+ sol:['Área: $A_t = 5·√3·9 = 45√3 ≈ 77,94$ cm².','Volume: $V = [5·(3 + √5)|12]·27 ≈ 2,18·27 ≈ 58,91$ cm³.'],
+ ans:'$A_t = 45√3 ≈ 77,94$ cm² e $V ≈ 58,91$ cm³'},
+{id:'s15',g:'s',title:'Meia esfera (hemisfério)',fig:fMeia,
+ formula:{lead:'Metade de uma esfera de raio $r$, com uma base circular.',eq:['A_curva = 2·π·r^2','A_t = 3·π·r^2','V = [2·π·r^3|3]'],notes:['A área total soma a calota (metade da esfera) e o círculo da base: $2πr^2 + πr^2$.']},
+ ex:'Meia esfera de raio 6 cm. Calcule a superfície curva, a área total e o volume.',
+ sol:['Curva: $A_curva = 2·π·36 = 72π$ cm².','Total: $A_t = 3·π·36 = 108π$ cm².','Volume: $V = [2·π·216|3] = 144π$ cm³.'],
+ ans:'$A_curva = 72π ≈ 226,19$ cm², $A_t = 108π ≈ 339,29$ cm² e $V = 144π ≈ 452,39$ cm³'}
+);
+const SOLIDREF=[['s1','Paralelepípedo','a·b·c','2(ab + ac + bc)'],['s2','Cilindro','π·r^2·h','2πr(r + h)'],['s3','Anel (vazado)','π·h·(R^2 − r^2)','2πh(R + r) + 2π(R^2 − r^2)'],['s4','Prisma hexagonal','[3l^2√3|2]·h','3l^2√3 + 6lh'],['s5','Esfera','[4πr^3|3]','4πr^2'],['s6','Dodecaedro','[15 + 7√5|4]·a^3','3·√(25 + 10√5)·a^2'],['s7','Pirâmide quadrada','[a^2·h|3]','a^2 + 2·a·a_p'],['s8','Octaedro','[a^3√2|3]','2a^2√3'],['s9','Cone','[πr^2h|3]','πr(r + g)'],['s10','Prisma estrela','A_B·h','2A_B + P·h'],['s11','Cubo','a^3','6a^2'],['s12','Prisma triangular','[l^2√3|4]·h','[l^2√3|2] + 3lh'],['s13','Toroide','2π^2Rr^2','4π^2Rr'],['s14','Icosaedro','[5(3 + √5)|12]·a^3','5√3·a^2'],['s15','Meia esfera','[2πr^3|3]','3πr^2']];
+
+/* ---------- construção das fichas ---------- */
+const GN={p:'Pirâmide',g:'Posição',s:'Sólido'};
+const list=document.getElementById('list');
+const MM=x=>x[0]==='~'?x.slice(1):M(x);
+function eqHTML(e){return (typeof e==='string'?'<div class="eq-row"><div class="eq">'+MM(e)+'</div></div>':'<div class="eq-row"><span class="eq-t">'+e.t+'</span><div class="eq">'+MM(e.e)+'</div></div>');}
+function card(t){
+  const a=document.createElement('article');a.className='card';a.dataset.g=t.g;a.dataset.done='0';a.id=t.id;
+  const fig=t.fig?(typeof t.fig==='function'?t.fig():t.fig):'';
+  a.innerHTML=
+   '<div class="chead"><span class="tag">'+GN[t.g]+'</span><h3>'+t.title+'</h3></div>'+
+   '<div class="steps">'+
+     '<button class="sb" data-s="1"><i>1</i>Ver fórmula</button>'+
+     '<button class="sb" data-s="2" disabled><i>2</i>Ver exemplo</button>'+
+     '<button class="sb" data-s="3" disabled><i>3</i>Ver solução</button>'+
+     '<button class="reset" hidden>Recomeçar</button></div>'+
+   '<div class="rv" data-p="1"><div class="in"><div class="pad"><div class="cols"><div>'+
+     '<p class="lead">'+P(t.formula.lead)+'</p>'+t.formula.eq.map(eqHTML).join('')+
+     (t.formula.notes.length?'<ul class="notes">'+t.formula.notes.map(n=>'<li>'+P(n)+'</li>').join('')+'</ul>':'')+
+     '</div>'+(fig?'<div class="figbox">'+fig+'</div>':'')+'</div></div></div></div>'+
+   '<div class="rv" data-p="2"><div class="in"><div class="pn"><div class="pad"><p class="pn-label">Exemplo</p><p class="ex">'+P(t.ex)+'</p></div></div></div></div>'+
+   '<div class="rv" data-p="3"><div class="in"><div class="pn"><div class="pad"><p class="pn-label">Solução passo a passo</p>'+
+     '<ol class="sol">'+t.sol.map((s,i)=>'<li style="--i:'+i+'"><span>'+P(s)+'</span></li>').join('')+'</ol>'+
+     '<div class="ans" style="--n:'+t.sol.length+'"><b class="k">Resposta</b>'+P(t.ans)+'</div>'+
+     (t.doubt?'<div class="doubt">'+P(t.doubt)+'</div>':'')+
+   '</div></div></div></div>';
+  list.appendChild(a);
+}
+TOP.forEach(card);
+
+function setStep(a,n,on){
+  const btn=a.querySelector('.sb[data-s="'+n+'"]'),rv=a.querySelector('.rv[data-p="'+n+'"]');
+  btn.classList.toggle('on',on);rv.classList.toggle('open',on);
+  if(n===1){const f=a.querySelector('.figbox');if(f)f.classList.toggle('go',on);}
+}
+function refresh(a){
+  const s=[1,2,3].map(n=>a.querySelector('.rv[data-p="'+n+'"]').classList.contains('open'));
+  a.querySelector('.sb[data-s="2"]').disabled=!s[0];
+  a.querySelector('.sb[data-s="3"]').disabled=!s[1];
+  a.dataset.done=s.filter(Boolean).length;
+  a.querySelector('.reset').hidden=!s[0];
+}
+list.addEventListener('click',e=>{
+  const a=e.target.closest('.card');if(!a)return;
+  const b=e.target.closest('.sb');
+  if(b&&!b.disabled){const n=+b.dataset.s;setStep(a,n,true);refresh(a);return;}
+  if(e.target.closest('.reset')){[1,2,3].forEach(n=>setStep(a,n,false));refresh(a);}
+});
+function openAll(on){document.querySelectorAll('.card').forEach(a=>{if(a.hidden)return;[1,2,3].forEach(n=>setStep(a,n,on));refresh(a);});}
+document.getElementById('openAll').onclick=()=>openAll(true);
+document.getElementById('closeAll').onclick=()=>openAll(false);
+
+/* abas */
+function showGroup(g){
+  document.querySelectorAll('.tab').forEach(t=>t.setAttribute('aria-selected',t.dataset.g===g?'true':'false'));
+  document.querySelectorAll('.card').forEach(a=>{a.hidden=a.dataset.g!==g;});
+  document.getElementById('calc').hidden=g!=='p';document.getElementById('tbl').hidden=g!=='s';
+}
+document.querySelectorAll('.tab').forEach(t=>t.addEventListener('click',()=>showGroup(t.dataset.g)));
+showGroup('p');
+
+/* calculadora */
+const fmt=x=>x.toLocaleString('pt-BR',{maximumFractionDigits:2,minimumFractionDigits:0});
+function calc(){
+  const n=+document.getElementById('cb').value,l=+document.getElementById('cl').value,h=+document.getElementById('ch').value,r=document.getElementById('res');
+  if(!(l>0&&h>0)){r.innerHTML='<div><small>Resultado</small><b>Digite valores maiores que zero</b></div>';return;}
+  const s3=Math.sqrt(3);
+  const a1=n===3?l*s3/6:n===4?l/2:l*s3/2;
+  const AB=n===3?l*l*s3/4:n===4?l*l:3*s3*l*l/2;
+  const a=Math.hypot(h,a1),al=Math.hypot(a,l/2),AL=n*l*a/2,At=AB+AL,V=AB*h/3;
+  const items=[['a₁ (apótema da base)',a1,'cm'],['a (apótema da pirâmide)',a,'cm'],['aℓ (aresta lateral)',al,'cm'],['A_B (base)',AB,'cm²'],['A_L (lateral)',AL,'cm²'],['A_t (total)',At,'cm²'],['V (volume)',V,'cm³']];
+  r.innerHTML=items.map(i=>'<div><small>'+i[0].replace('A_B','A<span>B</span>').replace('A_L','A<span>L</span>').replace('A_t','A<span>t</span>')+'</small><b class="pulse">'+fmt(i[1])+'</b> '+i[2]+'</div>').join('');
+  setTimeout(()=>r.querySelectorAll('b').forEach(b=>b.classList.remove('pulse')),400);
+}
+['cb','cl','ch'].forEach(id=>document.getElementById(id).addEventListener('input',calc));calc();
+
+/* tabela de sólidos */
+document.getElementById('tb').innerHTML=SOLIDREF.map(r=>'<tr><td><button class="lk" data-go="'+r[0]+'">'+r[1]+'</button></td><td class="m2">'+M(r[2])+'</td><td class="m2">'+M(r[3])+'</td></tr>').join('');
+document.getElementById('tb').addEventListener('click',e=>{const b=e.target.closest('[data-go]');if(!b)return;const a=document.getElementById(b.dataset.go);a.scrollIntoView({behavior:'smooth',block:'start'});if(!a.querySelector('.rv.open')){setStep(a,1,true);refresh(a);}});
+/* dúvidas */
+const FAQ=[
+['Por que o volume da pirâmide é um terço?','Um cubo pode ser dividido em 3 pirâmides congruentes que têm a mesma base e a mesma altura do cubo. Cada uma fica com 1/3 do volume. O princípio de Cavalieri estende isso para qualquer base.'],
+['Como sei se uso $K$, $K^2$ ou $K^3$?','Olhe o que está sendo comparado. Comprimentos (arestas, alturas, apótemas): $K$. Áreas: $K^2$. Volumes: $K^3$.'],
+['Qual a diferença entre retas reversas e paralelas?','As duas não têm ponto comum. Paralelas ficam no mesmo plano. Reversas não cabem em nenhum plano único.'],
+['Perpendicular e ortogonal são a mesma coisa?','Não. Perpendiculares se cortam e formam 90°. Ortogonais são reversas e formam 90° quando se translada uma delas até cortar a outra.'],
+['Uma reta perpendicular a uma reta do plano é perpendicular ao plano?','Não necessariamente. É preciso ser perpendicular a duas retas concorrentes do plano.'],
+['O que é traço e o que é pé da perpendicular?','Traço é o ponto onde uma reta fura um plano (ou a reta em que um plano corta outro). Pé da perpendicular é o ponto onde a perpendicular encontra o plano.']
+];
+const faq=document.getElementById('faq');
+FAQ.forEach(q=>{const d=document.createElement('details');d.innerHTML='<summary>'+P(q[0])+'</summary><p>'+P(q[1])+'</p>';faq.appendChild(d);});
+</script>
+
+</body>
+</html>
